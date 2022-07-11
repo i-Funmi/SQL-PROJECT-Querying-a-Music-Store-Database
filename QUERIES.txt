@@ -1,0 +1,52 @@
+	/*QUERY 1*/
+SELECT g.Name AS genre_name, SUM(il.UnitPrice*il.Quantity) AS total_genre_sold
+FROM Genre g
+JOIN Track t
+USING (GenreId)
+JOIN InvoiceLine il
+USING(TrackId)
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5
+
+
+	/*QUERY 2*/
+SELECT a.Name AS Artist_name, SUM(il.UnitPrice*il.Quantity) AS total_sum
+FROM Artist a
+JOIN Album
+USING(ArtistId)
+JOIN Track
+USING(AlbumId)
+JOIN InvoiceLine il
+USING(TrackId)
+JOIN Invoice
+USING(InvoiceId)
+WHERE strftime('%Y', invoicedate) = "2013"
+GROUP BY 1
+order by 2 DESC
+LIMIT 5
+
+
+	/*QUERY 3*/
+WITH sum_tab AS (SELECT c.Country, STRFTIME('%Y', InvoiceDate) as Year, SUM(i.total) as sum_total
+	FROM Customer c
+	JOIN Invoice i
+	USING(CustomerId)
+	GROUP BY 1, 2)
+SELECT Year, MAX(sum_total) AS max_amt_per_year
+	FROM sum_tab
+	GROUP BY 1
+
+
+	/*QUERY 4*/
+WITH tab AS(
+	SELECT TrackId, SUM(il.Quantity*il.UnitPrice) sum_total
+	FROM Track t
+	JOIN InvoiceLine il
+	USING(TrackId)
+	GROUP BY 1
+	ORDER BY 2 DESC
+	LIMIT 10)
+SELECT t.TrackId AS track_id,(Milliseconds/60000) AS duration_minutes
+FROM Track t
+WHERE t.TrackId IN (SELECT TrackId FROM tab)
